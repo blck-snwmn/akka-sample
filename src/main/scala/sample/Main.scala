@@ -4,10 +4,11 @@ import akka.actor._
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -31,7 +32,11 @@ object Main extends App {
   }
 }
 
-class Api {
+trait MyJsonProtocol extends DefaultJsonProtocol {
+  implicit val userFormat = jsonFormat2(User)
+}
+
+class Api extends MyJsonProtocol {
   def rout =
     pathPrefix("greeting") {
       pathEndOrSingleSlash {
@@ -49,5 +54,14 @@ class Api {
             complete(OK, s"hello akka $name")
           }
         }
+      } ~
+      pathPrefix("user" / Segment) { name =>
+        pathEndOrSingleSlash {
+          get {
+            complete(OK, User(name, 10))
+          }
+        }
       }
 }
+
+case class User(name: String, age: Int)
