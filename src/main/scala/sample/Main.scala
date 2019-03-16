@@ -35,6 +35,7 @@ object Main extends App {
 
 trait MyJsonProtocol extends DefaultJsonProtocol {
   implicit val userFormat = jsonFormat2(User)
+  implicit val userAgeFormat = jsonFormat1(UserAge)
 }
 
 class Api extends ApiRoutes
@@ -67,9 +68,16 @@ trait ApiRoutes extends MyJsonProtocol {
       pathEndOrSingleSlash {
         get {
           complete(OK, User(name, 10))
-        }
+        } ~
+          post {
+            entity(as[UserAge]) { ua =>
+              complete(OK, User(name, ua.age))
+            }
+          }
       }
     }
 }
 
 case class User(name: String, age: Int)
+
+case class UserAge(age: Int)
