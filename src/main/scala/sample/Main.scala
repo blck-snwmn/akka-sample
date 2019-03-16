@@ -7,6 +7,7 @@ import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import spray.json.DefaultJsonProtocol
 
@@ -39,7 +40,10 @@ trait MyJsonProtocol extends DefaultJsonProtocol {
 class Api extends ApiRoutes
 
 trait ApiRoutes extends MyJsonProtocol {
-  def routes =
+  def routes: Route =
+    greetingRoute ~ userRoute
+
+  def greetingRoute =
     pathPrefix("greeting") {
       pathEndOrSingleSlash {
         get {
@@ -56,14 +60,16 @@ trait ApiRoutes extends MyJsonProtocol {
             complete(OK, s"hello akka $name")
           }
         }
-      } ~
-      pathPrefix("user" / Segment) { name =>
-        pathEndOrSingleSlash {
-          get {
-            complete(OK, User(name, 10))
-          }
+      }
+
+  def userRoute =
+    pathPrefix("user" / Segment) { name =>
+      pathEndOrSingleSlash {
+        get {
+          complete(OK, User(name, 10))
         }
       }
+    }
 }
 
 case class User(name: String, age: Int)
