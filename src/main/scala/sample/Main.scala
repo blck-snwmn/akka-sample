@@ -4,12 +4,7 @@ import akka.actor._
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.StatusCodes.OK
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -33,51 +28,3 @@ object Main extends App {
   }
 }
 
-trait MyJsonProtocol extends DefaultJsonProtocol {
-  implicit val userFormat = jsonFormat2(User)
-  implicit val userAgeFormat = jsonFormat1(UserAge)
-}
-
-class Api extends ApiRoutes
-
-trait ApiRoutes extends MyJsonProtocol {
-  def routes: Route =
-    greetingRoute ~ userRoute
-
-  def greetingRoute =
-    pathPrefix("greeting") {
-      pathEndOrSingleSlash {
-        get {
-          complete("hello akka")
-        }
-      }
-    } ~
-      pathPrefix("greeting" / Segment) { name =>
-        pathEndOrSingleSlash {
-          get {
-            //implicit conversion
-            // val codeAndValue: ToResponseMarshallable = ToResponseMarshallable(OK, s"hello akka $name")
-            // complete(codeAndValue)
-            complete(OK, s"hello akka $name")
-          }
-        }
-      }
-
-  def userRoute =
-    pathPrefix("user" / Segment) { name =>
-      pathEndOrSingleSlash {
-        get {
-          complete(OK, User(name, 10))
-        } ~
-          post {
-            entity(as[UserAge]) { ua =>
-              complete(OK, User(name, ua.age))
-            }
-          }
-      }
-    }
-}
-
-case class User(name: String, age: Int)
-
-case class UserAge(age: Int)
