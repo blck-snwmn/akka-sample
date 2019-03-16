@@ -20,7 +20,7 @@ object Main extends App {
   implicit val system = ActorSystem()
   implicit val ec = system.dispatcher
   implicit val materializer = ActorMaterializer()
-  val binding: Future[ServerBinding] = Http().bindAndHandle(new Api().rout, interface, port)
+  val binding: Future[ServerBinding] = Http().bindAndHandle(new Api().routes, interface, port)
 
   val log = Logging(system.eventStream, "Main")
 
@@ -39,7 +39,7 @@ trait MyJsonProtocol extends DefaultJsonProtocol {
 class Api extends ApiRoutes
 
 trait ApiRoutes extends MyJsonProtocol {
-  def rout =
+  def routes =
     pathPrefix("greeting") {
       pathEndOrSingleSlash {
         get {
