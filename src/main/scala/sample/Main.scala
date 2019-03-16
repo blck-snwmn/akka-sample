@@ -36,7 +36,9 @@ trait MyJsonProtocol extends DefaultJsonProtocol {
   implicit val userFormat = jsonFormat2(User)
 }
 
-class Api extends MyJsonProtocol {
+class Api extends ApiRoutes
+
+trait ApiRoutes extends MyJsonProtocol {
   def rout =
     pathPrefix("greeting") {
       pathEndOrSingleSlash {
