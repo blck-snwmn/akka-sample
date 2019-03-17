@@ -13,6 +13,9 @@ import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.{ExecutionContext, Future}
 
+/**
+  * jsonへのformatをまとめたtrait
+  */
 trait MyJsonProtocol extends DefaultJsonProtocol {
 
   import sample.AccountManager._
@@ -23,6 +26,13 @@ trait MyJsonProtocol extends DefaultJsonProtocol {
   implicit val errorFormat = jsonFormat1(Error)
 }
 
+/**
+  * APIの実装を行うクラス
+  * ActorSystemを受け取って、Actorの生成やExecuteContextの定義などを行う
+  * timeoutについては固定
+  *
+  * @param system
+  */
 class Api(system: ActorSystem) extends ApiRoutes {
   implicit def executionContext = system.dispatcher
 
@@ -31,6 +41,11 @@ class Api(system: ActorSystem) extends ApiRoutes {
   override implicit def requestTimeout: Timeout = Timeout(100 milliseconds)
 }
 
+/**
+  * APIのルート
+  * アクセス時に実際の処理を行うAPI traitをmixinする: AccountManagerApi
+  * 返却はJsonで行うため、自作クラスについてformatをまとめたtraitをmixin: MyJsonProtocol
+  */
 trait ApiRoutes extends MyJsonProtocol with AccountManagerApi {
 
   def routes: Route =
@@ -78,6 +93,7 @@ trait ApiRoutes extends MyJsonProtocol with AccountManagerApi {
           }
         } ~
           post {
+            //entity(as[T]) { t: T => ...  となる
             entity(as[UserAge]) { ua =>
               onSuccess(createUser(name, ua.age)) {
                 case AccountManager.UserCreated(user) =>
@@ -92,6 +108,10 @@ trait ApiRoutes extends MyJsonProtocol with AccountManagerApi {
     }
 }
 
+/**
+  * AccountManager Actor へ ask を行う
+  * このtraitにActorRefを使用するものを集約する
+  */
 trait AccountManagerApi {
 
   import AccountManager._

@@ -2,6 +2,9 @@ package sample
 
 import akka.actor.{Actor, Props}
 
+/**
+  * AccountManagerのPropsの定義、メッセージの定義
+  */
 object AccountManager {
   def props() = Props[AccountManager]
 
@@ -25,6 +28,9 @@ object AccountManager {
 
 }
 
+/**
+  * Accountの管理を行うActor
+  */
 class AccountManager extends Actor {
 
   import AccountManager._
