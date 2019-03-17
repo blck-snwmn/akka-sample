@@ -77,9 +77,6 @@ trait ApiRoutes extends MyJsonProtocol with AccountManagerApi {
           onSuccess(getUsers()) { users =>
             complete(OK, users)
           }
-          onSuccess(Future(List(AccountManager.User("bob", 10), AccountManager.User("tom", 12)))) { users =>
-            complete(OK, users)
-          }
         }
       }
     }
