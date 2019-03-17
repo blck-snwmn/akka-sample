@@ -39,7 +39,8 @@ class AccountManager extends Actor {
 
   override def receive: Receive = {
     case GetUser(name) => sender() ! users.get(name)
-    case GetUsers => users.values
+    case GetUsers =>
+      sender() ! Users(users.values.toVector)
     case CreateUser(name, age) =>
       if (users.contains(name)) sender() ! UserExists
       else {

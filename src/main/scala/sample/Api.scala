@@ -128,7 +128,7 @@ trait AccountManagerApi {
     accountManager.ask(GetUser(name)).mapTo[Option[User]]
 
   def getUsers() =
-    accountManager.ask(GetUser(name)).mapTo[Users]
+    accountManager.ask(GetUsers).mapTo[Users]
 }
 
 case class UserAge(age: Int)
