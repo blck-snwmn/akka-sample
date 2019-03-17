@@ -18,6 +18,7 @@ trait MyJsonProtocol extends DefaultJsonProtocol {
   import sample.AccountManager._
 
   implicit val userFormat = jsonFormat2(User)
+  implicit val usersFormat = jsonFormat1(Users)
   implicit val userAgeFormat = jsonFormat1(UserAge)
   implicit val errorFormat = jsonFormat1(Error)
 }
@@ -58,6 +59,9 @@ trait ApiRoutes extends MyJsonProtocol with AccountManagerApi {
     pathPrefix("users") {
       pathEndOrSingleSlash {
         get {
+          onSuccess(getUsers()) { users =>
+            complete(OK, users)
+          }
           onSuccess(Future(List(AccountManager.User("bob", 10), AccountManager.User("tom", 12)))) { users =>
             complete(OK, users)
           }
@@ -105,6 +109,9 @@ trait AccountManagerApi {
 
   def getUser(name: String) =
     accountManager.ask(GetUser(name)).mapTo[Option[User]]
+
+  def getUsers() =
+    accountManager.ask(GetUser(name)).mapTo[Users]
 }
 
 case class UserAge(age: Int)

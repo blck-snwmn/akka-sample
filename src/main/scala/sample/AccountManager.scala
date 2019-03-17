@@ -15,6 +15,7 @@ object AccountManager {
 
   case class GetUser(name: String)
 
+  case object GetUsers
 
   sealed trait Response
 
@@ -32,6 +33,7 @@ class AccountManager extends Actor {
 
   override def receive: Receive = {
     case GetUser(name) => sender() ! users.get(name)
+    case GetUsers => users.values
     case CreateUser(name, age) =>
       if (users.contains(name)) sender() ! UserExists
       else {
