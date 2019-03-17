@@ -3,7 +3,7 @@ package sample
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.StatusCodes.{BadRequest, Created, OK}
+import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.util.Timeout
@@ -69,7 +69,9 @@ trait ApiRoutes extends MyJsonProtocol with AccountManagerApi {
     pathPrefix("users" / Segment) { name =>
       pathEndOrSingleSlash {
         get {
-          complete(OK, AccountManager.User(name, 10))
+          onSuccess(getUser(name)) {
+            _.fold(complete(NotFound))(u => complete(OK, u))
+          }
         } ~
           post {
             entity(as[UserAge]) { ua =>
@@ -100,6 +102,9 @@ trait AccountManagerApi {
 
   def createUser(name: String, age: Int) =
     accountManager.ask(CreateUser(name, age)).mapTo[Response]
+
+  def getUser(name: String) =
+    accountManager.ask(GetUser(name)).mapTo[Option[User]]
 }
 
 case class UserAge(age: Int)

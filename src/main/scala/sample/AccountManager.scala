@@ -11,8 +11,9 @@ object AccountManager {
 
   case class Users(users: Vector[User])
 
-
   case class CreateUser(name: String, age: Int)
+
+  case class GetUser(name: String)
 
 
   sealed trait Response
@@ -30,6 +31,7 @@ class AccountManager extends Actor {
   var users: Map[String, User] = Map.empty[String, User]
 
   override def receive: Receive = {
+    case GetUser(name) => sender() ! users.get(name)
     case CreateUser(name, age) =>
       if (users.contains(name)) sender() ! UserExists
       else {
