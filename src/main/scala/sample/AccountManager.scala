@@ -7,7 +7,13 @@ object AccountManager {
 
   def name = "accountManager"
 
+  case class User(name: String, age: Int)
+
+  case class Users(users: Vector[User])
+
+
   case class CreateUser(name: String, age: Int)
+
 
   sealed trait Response
 
