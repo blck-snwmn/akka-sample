@@ -1,12 +1,14 @@
 package sample
 
-import akka.actor.{Actor, Props}
+import scala.concurrent.Future
+import akka.actor.{Actor, ActorRef, Props}
+import akka.util.Timeout
 
 /**
   * AccountManagerのPropsの定義、メッセージの定義
   */
 object AccountManager {
-  def props() = Props[AccountManager]
+  def props(implicit timeout: Timeout) = Props(new AccountManager())
 
   def name = "accountManager"
 
@@ -31,7 +33,7 @@ object AccountManager {
 /**
   * Accountの管理を行うActor
   */
-class AccountManager extends Actor {
+class AccountManager(implicit timeout: Timeout) extends Actor {
 
   import AccountManager._
 

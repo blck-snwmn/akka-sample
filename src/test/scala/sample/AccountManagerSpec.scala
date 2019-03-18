@@ -2,7 +2,9 @@ package sample
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
+import akka.util.Timeout
 import org.scalatest.{MustMatchers, WordSpecLike}
+import scala.concurrent.duration._
 
 class AccountManagerSpec extends TestKit(ActorSystem("AccountManager"))
   with WordSpecLike
@@ -10,6 +12,8 @@ class AccountManagerSpec extends TestKit(ActorSystem("AccountManager"))
   with StopSystemAfterAll {
 
   import AccountManager._
+
+  implicit val requestTimeout: Timeout = Timeout(100 milliseconds)
 
   "AccountManager" must {
     "return saved user when receive CreateUser" in {

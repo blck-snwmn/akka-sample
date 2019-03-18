@@ -36,9 +36,9 @@ trait MyJsonProtocol extends DefaultJsonProtocol {
 class Api(system: ActorSystem) extends ApiRoutes {
   implicit def executionContext = system.dispatcher
 
-  override def createAccountManager(): ActorRef = system.actorOf(AccountManager.props, AccountManager.name)
-
   override implicit def requestTimeout: Timeout = Timeout(100 milliseconds)
+
+  override def createAccountManager(): ActorRef = system.actorOf(AccountManager.props, AccountManager.name)
 }
 
 /**
