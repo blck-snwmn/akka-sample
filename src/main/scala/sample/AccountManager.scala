@@ -10,11 +10,11 @@ object AccountManager {
 
   def name = "accountManager"
 
-  case class User(name: String, age: Int)
+  case class User(name: String, points: Int)
 
   case class Users(users: Vector[User])
 
-  case class CreateUser(name: String, age: Int)
+  case class CreateUser(name: String, points: Int)
 
   case class GetUser(name: String)
 
@@ -41,10 +41,10 @@ class AccountManager extends Actor {
     case GetUser(name) => sender() ! users.get(name)
     case GetUsers =>
       sender() ! Users(users.values.toVector)
-    case CreateUser(name, age) =>
+    case CreateUser(name, points) =>
       if (users.contains(name)) sender() ! UserExists
       else {
-        val user = User(name, age)
+        val user = User(name, points)
         users = users + (name -> user)
         sender() ! UserCreated(user)
       }
