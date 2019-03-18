@@ -22,7 +22,7 @@ trait MyJsonProtocol extends DefaultJsonProtocol {
 
   implicit val userFormat = jsonFormat2(User)
   implicit val usersFormat = jsonFormat1(Users)
-  implicit val userAgeFormat = jsonFormat1(UserAge)
+  implicit val userAgeFormat = jsonFormat1(UserPoints)
   implicit val errorFormat = jsonFormat1(Error)
 }
 
@@ -36,9 +36,9 @@ trait MyJsonProtocol extends DefaultJsonProtocol {
 class Api(system: ActorSystem) extends ApiRoutes {
   implicit def executionContext = system.dispatcher
 
-  override def createAccountManager(): ActorRef = system.actorOf(AccountManager.props, AccountManager.name)
-
   override implicit def requestTimeout: Timeout = Timeout(100 milliseconds)
+
+  override def createAccountManager(): ActorRef = system.actorOf(AccountManager.props, AccountManager.name)
 }
 
 /**
@@ -91,8 +91,8 @@ trait ApiRoutes extends MyJsonProtocol with AccountManagerApi {
         } ~
           post {
             //entity(as[T]) { t: T => ...  となる
-            entity(as[UserAge]) { ua =>
-              onSuccess(createUser(name, ua.age)) {
+            entity(as[UserPoints]) { ua =>
+              onSuccess(createUser(name, ua.points)) {
                 case AccountManager.UserCreated(user) =>
                   complete(Created, user)
                 case AccountManager.UserExists =>
@@ -121,8 +121,8 @@ trait AccountManagerApi {
 
   lazy val accountManager = createAccountManager()
 
-  def createUser(name: String, age: Int) =
-    accountManager.ask(CreateUser(name, age)).mapTo[Response]
+  def createUser(name: String, points: Int) =
+    accountManager.ask(CreateUser(name, points)).mapTo[Response]
 
   def getUser(name: String) =
     accountManager.ask(GetUser(name)).mapTo[Option[User]]
@@ -131,6 +131,6 @@ trait AccountManagerApi {
     accountManager.ask(GetUsers).mapTo[Users]
 }
 
-case class UserAge(age: Int)
+case class UserPoints(points: Int)
 
 case class Error(message: String)

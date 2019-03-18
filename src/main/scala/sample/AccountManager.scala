@@ -1,20 +1,22 @@
 package sample
 
-import akka.actor.{Actor, Props}
+import scala.concurrent.Future
+import akka.actor.{Actor, ActorRef, Props}
+import akka.util.Timeout
 
 /**
   * AccountManagerのPropsの定義、メッセージの定義
   */
 object AccountManager {
-  def props() = Props[AccountManager]
+  def props(implicit timeout: Timeout) = Props(new AccountManager())
 
   def name = "accountManager"
 
-  case class User(name: String, age: Int)
+  case class User(name: String, points: Int)
 
   case class Users(users: Vector[User])
 
-  case class CreateUser(name: String, age: Int)
+  case class CreateUser(name: String, points: Int)
 
   case class GetUser(name: String)
 
@@ -31,22 +33,49 @@ object AccountManager {
 /**
   * Accountの管理を行うActor
   */
-class AccountManager extends Actor {
+class AccountManager(implicit timeout: Timeout) extends Actor {
 
   import AccountManager._
+  import context._
 
-  var users: Map[String, User] = Map.empty[String, User]
+  def createUserDetail(name: String) =
+    context.actorOf(UserDetail.props(name), name)
 
   override def receive: Receive = {
-    case GetUser(name) => sender() ! users.get(name)
+    case GetUser(name) =>
+      def notFound(): Unit = sender() ! None
+
+      /**
+        * about forward
+        * parent: Actor
+        * child: Actor
+        * grandchild: Actor
+        * 1. parent send child 'messageA'
+        * 2. child receive 'messageA'
+        * 3. child forward grandchild 'messageB'
+        * 4. in grandchild, sender() is parent
+        */
+      def forwardGetMessage(child: ActorRef): Unit = child forward UserDetail.GetUser
+
+      context.child(name).fold(notFound())(forwardGetMessage)
+
     case GetUsers =>
-      sender() ! Users(users.values.toVector)
-    case CreateUser(name, age) =>
-      if (users.contains(name)) sender() ! UserExists
-      else {
-        val user = User(name, age)
-        users = users + (name -> user)
-        sender() ! UserCreated(user)
+      import akka.pattern.ask
+      import akka.pattern.pipe
+      def getUsers = context.children.map { child =>
+        self.ask(GetUser(child.path.name)).mapTo[Option[User]]
       }
+
+      val f = Future.sequence(getUsers).map(_.flatten).map(l => Users(l.toVector))
+      pipe(f) to sender()
+
+    case CreateUser(name, points) =>
+      def create(): Unit = {
+        val actor = createUserDetail(name)
+        actor ! UserDetail.GetPoints(points)
+        sender() ! UserCreated(User(name, points))
+      }
+
+      context.child(name).fold(create())(_ => sender() ! UserExists)
   }
 }
